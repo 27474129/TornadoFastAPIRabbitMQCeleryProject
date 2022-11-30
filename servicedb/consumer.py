@@ -1,10 +1,3 @@
-import requests
-from multiprocessing import Process
+from sources.celery_ import consuming
 
-
-def execute_consuming():
-    requests.get("http://servicedb:8000")
-
-
-process = Process(target=execute_consuming)
-process.start()
+consuming.delay()

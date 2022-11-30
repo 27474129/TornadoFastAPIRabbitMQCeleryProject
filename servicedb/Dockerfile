@@ -12,4 +12,4 @@ RUN pip3 install -r requirements.txt
 
 
 CMD ["uvicorn", "app:app", "--reload", "--host", "servicedb", "--port", "8000"]
-
+CMD ["python3", "consumer.py"]
