@@ -1,0 +1,100 @@
+version: "3"
+
+services:
+  frontend:
+    container_name: frontend
+    image: nginx:latest
+    volumes:
+      - ./frontend/nginx-frontend.conf:/etc/nginx/conf.d/nginx-frontend.conf
+      - ./frontend:/frontend
+    depends_on:
+      - backend
+      - servicedb
+      - adminer
+      - postgres
+      - rabbitmq
+    networks:
+      net:
+        ipv4_address: 192.168.220.2
+
+  backend:
+    container_name: backend
+    restart: always
+    volumes:
+      - ./backend:/backend/
+    build: ./backend
+    depends_on:
+      - postgres
+      - adminer
+      - rabbitmq
+    ports:
+      - "8888:8888"
+    networks:
+      net:
+        ipv4_address: 192.168.220.3
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "27474129"
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_INITDB_ARGS: "-A md5"
+    volumes:
+      - db:/var/lib/postgresql
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    ports:
+      - '54324:5432'
+    networks:
+      net:
+        ipv4_address: 192.168.220.4
+
+  servicedb:
+    container_name: servicedb
+    restart: always
+    volumes:
+      - ./servicedb:/servicedb/
+    build: ./servicedb
+    depends_on:
+      - postgres
+      - adminer
+      - rabbitmq
+    networks:
+      net:
+        ipv4_address: 192.168.220.5
+
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      net:
+        ipv4_address: 192.168.220.6
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management-alpine
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: 27474129
+    networks:
+      net:
+        ipv4_address: 192.168.220.10
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.220.0/24
+
+volumes:
+  db: null
